@@ -1,1 +1,27 @@
 
+* Leveldb的cache实现
+可以参考： http://bean-li.github.io/leveldb-LRUCache/
+
+LRU handle：
+  单个node，映射到一个(key, value), 里面放了refs, in_cache等
+
+Handle Table: 
+  这里面有三个数据结构：
+   uint32_t length_;  // Hash table的 Index长度
+  uint32_t elems_;   // Hash Table里面总的Slice数目
+  LRUHandle** list_;  注意这里是指针，对于每个Slice,其实都是离散的， 这里相当于用指针把他们串联起来
+  
+  
+LRU Cache: 
+   共三个数据结构：
+   lru_ (cold data), 链表
+   in_use_ (hot data), 链表
+   table_     handle table
+   这里面的关系大概是：
+   一个没被淘汰的Slice肯定是在一个table_中（指针），这里LRU Cache的是仍在使用的Node
+   不过这个Node指针一定要么在冷数据中，要么在热数据中
+   然后每次Insert或者Remove的时候，会通过Ref()或者Unref()函数来迁移数据（冷热链表的迁移）
+
+
+
+Shard LRU Cache:
